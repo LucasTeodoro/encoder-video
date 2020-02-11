@@ -4,7 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"cloud.google.com/go/storage"
-	"ioutil"
+	"io/ioutil"
+	"os"
+	"fmt"
+	"os/exec"
 )
 
 type Video struct {
@@ -25,7 +28,7 @@ func (video *Video) Unmarshal(payload []byte) Video {
 func (video *Video) Download(bucketName string, storagePath string) (Video, error) {
 	ctx := context.Background()
 
-	client, err := storage.NewCliente(ctx)
+	client, err := storage.NewClient(ctx)
 
 	if err != nil {
 		video.Status = "error"
