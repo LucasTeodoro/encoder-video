@@ -79,3 +79,57 @@ func (video *Video) Download(bucketName string, storagePath string) (Video, erro
 
 	return *video, nil
 }
+
+func (video *Video) Fragment(storagePath string) Video {
+	err := os.Mkdir(storagePath + "/" + video.Uuid, os.ModePerm)
+
+	if err != nil {
+		video.Status = "error"
+		fmt.Println(err.Error())
+	}
+
+	source := storagePath + "/" + video.Uuid + ".mp4"
+	target := storagePath + "/" + video.Uuid + ".frag"
+	
+	cmd :=  exec.Command("mp4fragment", source, target)
+	output, err := cmd.CombinedOutput()
+
+	if err != nil {
+		video.Status = "error"
+		fmt.Println(err.Error())
+	}
+
+	printOutput(output)
+
+	return *video
+}
+
+func (video *Video) Encode(storagePath string) Video {
+	cmdArgs := []string{}
+
+	cmdArgs = append(cmdArgs, storagePath + "/" + video.Uuid + ".frag")
+	cmdArgs = append(cmdArgs, "--use-segment-timeline")
+	cmdArgs = append(cmdArgs, "-o")
+	cmdArgs = append(cmdArgs, storagePath + "/" + video.Uuid)
+	cmdArgs = append(cmdArgs, "--exec-dir")
+	cmdArgs = append(cmdArgs, "/usr/local/bin")
+
+	cmd := exec.Command("mp4dash", cmdArgs...)
+
+	output, err := cmd.CombinedOutput()
+
+	if err != nil {
+		video.Status = "error"
+		fmt.Println(err.Error())
+	}
+
+	printOutput(output)
+
+	return *video
+}
+
+func printOutput(out []byte) {
+	if(len(out) > 0) {
+		fmt.Printf("Output: %s\n", string(out))
+	}
+}
