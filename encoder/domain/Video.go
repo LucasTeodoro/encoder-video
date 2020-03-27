@@ -131,6 +131,57 @@ func (video *Video) Encode(storagePath string) Video {
 	return *video
 }
 
+func (video *Video) UploadObject(completPath string, storagePath string, bucketName string, client *storage.Client, ctx context.Context) error {
+	path := strings.Split(completPath, storagePath + "/")
+
+	f, err := os.Open(completPath)
+	if err != nil {
+		fmt.Println("Error during the upload", err.Error())
+		return err
+	}
+	defer f.Close()
+
+	wc := client.Bucket(bucketName).Object(path[1]).NewWrite(ctx)
+	wc.ACL = []storage.ACLRule{{Entity: storage.AllUsers, Role:storage.RoleReader}}
+
+	if _, err = io.Copy(wc, f); err != nil {
+		return err
+	}
+
+	if err := wc.Close(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (video *Video) Finish(storagePath string) {
+	err := os.Remove(storagePath + "/" + video.Uuid + ".mp4")
+	if err != nil {
+		fmt.Println("Error removing MP4: ", video.Uuid)
+	}
+	err := os.Remove(storagePath + "/" + video.Uuid + ".frag")
+	if err != nil {
+		fmt.Println("Error removing FRAG: ", video.Uuid + ".frag")
+	}
+	err := os.RemoveAll(storagePath + "/" + video.Uuid)
+	if err != nil {
+		fmt.Println("Error removing folder: ", video.Path)
+	}
+
+	
+}
+
+func (video *Video) GetVideoPaths() []string {
+	var paths []string
+	filepath.Walk("/tmp/convite", func(path string, info os.FileInfo, err error) error {
+		paths = append(paths, path)
+		return nil
+	})
+
+	return paths
+}
+
 func printOutput(out []byte) {
 	if(len(out) > 0) {
 		fmt.Printf("Output: %s\n", string(out))

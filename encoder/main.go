@@ -5,8 +5,15 @@ import v "encoder/domain"
 
 func main() {
 	var video v.Video
-	log.Info("Olá ")
+	doneUpload := make(chan bool)
 	data := []byte("{\"uuid\": \"batata123\", \"path\": \"batata.mp4\", \"status\": \"1\"}")
 	video.Unmarshal(data)
 	video.Download("batata.mp4", "/tmp")
+	video.Fragment("/tmp")
+	video.Encode("/tmp")
+
+	go v.ProcessUpload(video, "/tmp", "codeeducationtest", doneUpload)
+	<-doneUpload
+
+	log.Info(video.Path)
 }
