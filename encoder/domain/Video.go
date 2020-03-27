@@ -169,7 +169,7 @@ func (video *Video) Finish(storagePath string) {
 		fmt.Println("Error removing folder: ", video.Path)
 	}
 
-	
+	fmt.Println("Files has been removed", video.Uuid)
 }
 
 func (video *Video) GetVideoPaths() []string {

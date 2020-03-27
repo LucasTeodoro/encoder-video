@@ -14,6 +14,6 @@ func main() {
 
 	go v.ProcessUpload(video, "/tmp", "codeeducationtest", doneUpload)
 	<-doneUpload
-
+	video.Finish("/tmp")
 	log.Info(video.Path)
 }
